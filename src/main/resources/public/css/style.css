@@ -1,0 +1,20 @@
+.removeBtn {
+	margin-left: 10px;
+}
+
+.greetedName {
+
+}
+
+.listBtn {
+	justify-content: flex-end;
+   display: flex;
+}
+
+.alignCenter {
+	text-align: center;
+}
+
+.hide {
+	display: none;
+}
