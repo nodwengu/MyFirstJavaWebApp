@@ -1,5 +1,6 @@
 package net.myfirst.webapp;
 
+import net.myfirst.webapp.exceptions.InputRequiredException;
 import spark.ModelAndView;
 import spark.template.handlebars.HandlebarsTemplateEngine;
 
@@ -13,7 +14,9 @@ import static spark.Spark.*;
 import static java.lang.System.out;
 
 public class App {
-   static  String name = null;
+   private static Person user = null;
+   private static String errorMsg = null;
+   private static String showError = "hide";
    
    static int getHerokuAssignedPort() {
       ProcessBuilder processBuilder = new ProcessBuilder();
@@ -28,6 +31,7 @@ public class App {
       staticFiles.location("/public");
       
       List<String> users = new ArrayList<>();
+
       PersonService personService = new PersonService();
       personService.connectDb();
       
@@ -66,35 +70,39 @@ public class App {
       post("/hello", (req, res) -> {
          personService.connectDb();
          Map<String, Object> map = new HashMap<>();
-         Person user = null;
          String language = req.queryParams("language");
-         name = req.queryParams("name").toLowerCase();
-         name = name.substring(0, 1).toUpperCase() + name.substring(1);
-   
-         user = new Person();
-         user.setName(name);
-         user.setCount(1);
-         
-         String greeting = App.greeting(language, user.getName());
-         
-         List<String> names = personService.getUserNames();
-         
-         if (!names.contains(name)) {
-            personService.add(user);
+         String name = req.queryParams("name");
 
-         } else {
-            Person person = null;
-            person = personService.getByName(name);
-            personService.updateCount(person);
+         Person person = null;
+         String greeting = null;
+
+         try {
+            greeting = App.greeting(language, name);
+            List<String> names = personService.getUserNames();
+
+            if (!names.contains(name)) {
+               personService.add(user);
+            } else {
+               person = personService.getByName(name);
+               personService.updateCount(person);
+            }
+            showError = "hide";
+
+         } catch (InputRequiredException e) {
+            errorMsg = e.getMessage();
+            showError = "show";
          }
+
          List<Person> usersList = personService.usersList();
-         
+
          map.put("greeting", greeting);
          map.put("usersList", usersList);
          map.put("greetedCounter", usersList.size());
-   
+         map.put("errorMsg", errorMsg);
+         map.put("showError", showError);
+
          personService.closeConnection();
-         //res.redirect("/hello");
+
          return new ModelAndView(map, "hello.handlebars");
       
       }, new HandlebarsTemplateEngine());
@@ -108,23 +116,34 @@ public class App {
       });
    }
    
-   static String greeting(String language, String name) {
+   static String greeting(String language, String name) throws InputRequiredException{
       String greeting = null;
-  
-      switch (language) {
-         case "English":
-            greeting = "Hello, " + name;
-            break;
-         case "Xhosa":
-            greeting = "Mholo, " + name;
-            break;
-         case "Zulu":
-            greeting = "Sawubona, " + name;
-            break;
-         default:
-            greeting = "Select Radio button";
+
+      if ( language == null || name.isEmpty() ) {
+         throw new InputRequiredException("Name and Language are required");
+
+      } else {
+         String newName = name.toLowerCase();
+         newName = name.substring(0, 1).toUpperCase() + name.substring(1);
+
+         user = new Person();
+         user.setName(newName);
+         user.setCount(1);
+
+         switch (language) {
+            case "English":
+               greeting = "Hello, " + newName;
+               break;
+            case "Xhosa":
+               greeting = "Mholo, " + newName;
+               break;
+            case "Zulu":
+               greeting = "Sawubona, " + newName;
+               break;
+            default:
+               greeting = "Select Radio button";
+         }
       }
-     
       return greeting;
    }
 }

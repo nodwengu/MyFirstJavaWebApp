@@ -10,8 +10,7 @@ public class PersonService {
    private final String dbDiskURL = "jdbc:postgresql://127.0.0.1:5432/greet_db";
    private final String USER = "coder";
    private final String PASS = "pg123";
-   
-   private Jdbi jdbi = null;
+           private Jdbi jdbi = null;
    private Handle handle = null;
   
    public void connectDb() {

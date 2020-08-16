@@ -7,7 +7,13 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">    <link rel="stylesheet" href="/css/style.css">
-   <link rel="stylesheet" href="/css/style.css">
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css"
+    />
+
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container jumbotron">
@@ -37,7 +43,7 @@
                    <br>
                    <button type="submit" class="btn btn-primary">Greet</button>
                    <a href="/reset" class="btn btn-primary">Reset</a>
-                   <h3 class="mt-5 alignCenter">
+                   <h3 class="mt-5 alignCenter animate__animated animate__fadeIn">
                       {{greeting}}
                    </h3>
                  </div>
@@ -46,6 +52,9 @@
                   <h5><span class="badge badge-primary badge-pill">{{greetedCounter}}</span></h5>
                  </div>
                 </div>
+                 <div class="alert alert-danger animate__animated animate__fadeIn hide {{showError}}" role="alert">
+                     <span class="">{{errorMsg}}</span>
+                 </div>
              </div>
              <div class="col-sm-5">
                <ul class="list-group">
