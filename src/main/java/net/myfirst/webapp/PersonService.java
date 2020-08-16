@@ -66,7 +66,7 @@ public class PersonService {
       person.increaseCount();
       handle.execute("UPDATE person SET count=? WHERE name=?", person.getCount(), person.getName());
    }
-   
+
    public void clearDb() {
       handle.createUpdate("DELETE FROM person").execute();
    }
