@@ -1,5 +1,5 @@
 create table person(
     id serial not null primary key,
-    first_name text,
+    name text,
     counter int
 );

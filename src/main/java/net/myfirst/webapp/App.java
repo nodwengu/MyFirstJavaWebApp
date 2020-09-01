@@ -22,7 +22,13 @@ public class App {
    private static Person user = null;
    private static String errorMsg = null;
    private static String showError = "hide";
-   
+
+   private static final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
+   private static final String USER = "coder";
+   private static final String PASS = "pg123";
+
+   private static PersonService personService = new PersonService();
+
    static int getHerokuAssignedPort() {
       ProcessBuilder processBuilder = new ProcessBuilder();
       if (processBuilder.environment().get("PORT") != null) {
@@ -31,115 +37,110 @@ public class App {
       return 4567; //return default port if heroku-port isn't set (i.e. on localhost)
    }
 
-//   static Connection getDatabaseConnection(String defualtJdbcUrl) throws URISyntaxException, SQLException {
-//      ProcessBuilder processBuilder = new ProcessBuilder();
-//      String database_url = processBuilder.environment().get("DATABASE_URL");
-//      if (database_url != null) {
-//         URI uri = new URI(database_url);
-//         String[] hostParts = uri.getUserInfo().split(":");
-//         String username = hostParts[0];
-//         String password = hostParts[1];
-//         String host = uri.getHost();
-//
-//         int port = uri.getPort();
-//
-//         String path = uri.getPath();
-//         String url = String.format("jdbc:postgresql://%s:%s%s", host, port, path);
-//
-//         return DriverManager.getConnection(url, username, password);
-//
-//      }
-//      return DriverManager.getConnection(defualtJdbcUrl);
-//   }
-//
    public static void main(String[] args) {
-      port(getHerokuAssignedPort());
+      personService.connectToDatabase(DB_URL, USER, PASS);
+      out.println(personService.usersList());
+
       staticFiles.location("/public");
-      
+
       List<String> users = new ArrayList<>();
 
-      PersonService personService = new PersonService();
-      personService.connectDb();
-      
+      try {
+         personService.getDatabaseConnection("postgres://quhyzuotwsqqns:59dc741351426ba710278e6719f77149478f49333893a41d6df4889ad1e98d37@ec2-52-87-135-240.compute-1.amazonaws.com:5432/dcekiv6fkhfaq0");
+      }
+      catch (SQLException e) {
+         out.println(e.getMessage());
+      } catch (URISyntaxException e) {
+         out.println(e.getMessage());
+      }
+
+      port(getHerokuAssignedPort());
+
       get("/", (req, res) -> {
          res.redirect("/hello");
          return null;
       });
-   
-      get("/hello", (req, res) -> {
-         personService.connectDb();
-         List<Person> usersList = new ArrayList<>();
-         usersList = personService.usersList();
-        
-         Map<String, Object> map = new HashMap<>();
-         map.put("usersList", usersList);
-         map.put("greetedCounter", usersList.size());
-         
-         personService.closeConnection();
-         return new ModelAndView(map, "hello.handlebars");
-      }, new HandlebarsTemplateEngine());
-   
-      get("/greeted/:name", (req, res) -> {
-         Person user = null;
-         personService.connectDb();
-         Map<String, Object> map = new HashMap<>();
-         map.put("name", req.params("name"));
-         
-         user = personService.getByName(req.params("name"));
-         int count = user.getCount();
-         map.put("count", count);
-   
-         personService.closeConnection();
-         return new ModelAndView(map, "greeted.handlebars");
-      }, new HandlebarsTemplateEngine());
-   
-      post("/hello", (req, res) -> {
-         personService.connectDb();
-         Map<String, Object> map = new HashMap<>();
-         String language = req.queryParams("language");
-         String name = req.queryParams("name");
 
-         Person person = null;
-         String greeting = null;
+         get("/hello", (req, res) -> {
+            List<Person> usersList = new ArrayList<>();
+            usersList = personService.usersList();
 
-         try {
-            greeting = App.greeting(language, name);
-            List<String> names = personService.getUserNames();
+            Map<String, Object> map = new HashMap<>();
+            map.put("usersList", usersList);
+            map.put("greetedCounter", usersList.size());
 
-            if (!names.contains(name)) {
-               personService.add(user);
-            } else {
-               person = personService.getByName(name);
-               personService.updateCount(person);
-            }
-            showError = "hide";
+            //personService.closeConnection();
+            return new ModelAndView(map, "hello.handlebars");
+         }, new HandlebarsTemplateEngine());
 
-         } catch (InputRequiredException e) {
-            errorMsg = e.getMessage();
-            showError = "show";
-         }
+         get("/greeted/:name", (req, res) -> {
+            Person user = null;
+            //personService.connectDb();
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", req.params("name"));
 
-         List<Person> usersList = personService.usersList();
+            //user = personService.getByName(req.params("name"));
+            int count = user.getCount();
+            map.put("count", count);
 
-         map.put("greeting", greeting);
-         map.put("usersList", usersList);
-         map.put("greetedCounter", usersList.size());
-         map.put("errorMsg", errorMsg);
-         map.put("showError", showError);
+            return new ModelAndView(map, "greeted.handlebars");
+         }, new HandlebarsTemplateEngine());
 
-         personService.closeConnection();
+//         post("/hello", (req, res) -> {
+//            //personService.connectDb();
+//            Map<String, Object> map = new HashMap<>();
+//            String language = req.queryParams("language");
+//            String name = req.queryParams("name");
+//
+//            Person person = null;
+//            String greeting = null;
+//
+//            try {
+//               greeting = App.greeting(language, name);
+//               List<String> names = personService.getUserNames();
+//
+//               if (!names.contains(name)) {
+//                  personService.add(user);
+//               } else {
+//                  person = personService.getByName(name);
+//                  personService.updateCount(person);
+//               }
+//               showError = "hide";
+//
+//            } catch (InputRequiredException e) {
+//               errorMsg = e.getMessage();
+//               showError = "show";
+//            }
+//
+//            List<Person> usersList = personService.usersList();
+//
+//            map.put("greeting", greeting);
+//            map.put("usersList", usersList);
+//            map.put("greetedCounter", usersList.size());
+//            map.put("errorMsg", errorMsg);
+//            map.put("showError", showError);
+//
+//            personService.closeConnection();
+//
+//            return new ModelAndView(map, "hello.handlebars");
+//
+//         }, new HandlebarsTemplateEngine());
 
-         return new ModelAndView(map, "hello.handlebars");
-      
-      }, new HandlebarsTemplateEngine());
-   
-      get("/reset", (req, res) -> {
-         personService.connectDb();
-         personService.clearDb();
-         res.redirect("/hello");
-         personService.closeConnection();
-         return null;
-      });
+//         get("/reset", (req, res) -> {
+//            //personService.connectDb();
+//            personService.clearDb();
+//            res.redirect("/hello");
+//            personService.closeConnection();
+//            return null;
+//         });
+
+
+//      } catch (SQLException throwables) {
+//         throwables.printStackTrace();
+//      } catch (URISyntaxException e) {
+//         e.printStackTrace();
+//      }
+
 
    }
 
