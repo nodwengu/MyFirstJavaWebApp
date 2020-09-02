@@ -10,7 +10,8 @@ import static java.lang.System.out;
 
 public class PersonService {
    private final String JDBC_DRIVER = "org.postgresql";
-   private final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
+   private final String DB_URL = "jdbc:postgresql:greet_db";
+   //private final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
    private final String USER = "coder";
    private final String PASS = "pg123";
 
