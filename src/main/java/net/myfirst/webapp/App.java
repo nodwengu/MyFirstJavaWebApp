@@ -27,6 +27,7 @@ public class App {
    private static final String USER = "coder";
    private static final String PASS = "pg123";
 
+
    private static PersonService personService = new PersonService();
 
    static int getHerokuAssignedPort() {
@@ -45,14 +46,16 @@ public class App {
 
       List<String> users = new ArrayList<>();
 
-      try {
-         personService.getDatabaseConnection("postgres://quhyzuotwsqqns:59dc741351426ba710278e6719f77149478f49333893a41d6df4889ad1e98d37@ec2-52-87-135-240.compute-1.amazonaws.com:5432/dcekiv6fkhfaq0");
-      }
-      catch (SQLException e) {
-         out.println(e.getMessage());
-      } catch (URISyntaxException e) {
-         out.println(e.getMessage());
-      }
+//      try {
+//         personService.getDatabaseConnection();
+//
+//         //personService.getDatabaseConnection("postgres://quhyzuotwsqqns:59dc741351426ba710278e6719f77149478f49333893a41d6df4889ad1e98d37@ec2-52-87-135-240.compute-1.amazonaws.com:5432/dcekiv6fkhfaq0");
+//      }
+//      catch (SQLException e) {
+//         out.println(e.getMessage());
+//      } catch (URISyntaxException e) {
+//         out.println(e.getMessage());
+//      }
 
       port(getHerokuAssignedPort());
 

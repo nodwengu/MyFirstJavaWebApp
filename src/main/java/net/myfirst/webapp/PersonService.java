@@ -28,6 +28,7 @@ public class PersonService {
    public Connection getDatabaseConnection(String jdbcDefaultUrl) throws URISyntaxException, SQLException {
       ProcessBuilder processBuilder = new ProcessBuilder();
       String database_url = processBuilder.environment().get("DATABASE_URL");
+      System.out.println("\u001B[32m" + database_url + "\u001B[0m");
       if (database_url != null) {
 
          URI uri = new URI(database_url);
@@ -203,7 +204,7 @@ public class PersonService {
          conn = DriverManager.getConnection(DB_URL, USER, PASS);
          preparedStatement = conn.prepareStatement(sql);
 
-         preparedStatement.setInt(1, person.increaseCount());
+         preparedStatement.setInt(1, person.getCount());
          preparedStatement.setString(2, person.getName());
          preparedStatement.execute();
 
