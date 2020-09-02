@@ -23,7 +23,7 @@ public class App {
    private static String errorMsg = null;
    private static String showError = "hide";
 
-   private static final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
+   private static final String DB_URL = "jdbc:postgresql:greet_db";
    private static final String USER = "coder";
    private static final String PASS = "pg123";
 
