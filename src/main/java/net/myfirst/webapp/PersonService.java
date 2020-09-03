@@ -10,13 +10,17 @@ import static java.lang.System.out;
 
 public class PersonService {
    private final String JDBC_DRIVER = "org.postgresql";
-   private final String DB_URL = "jdbc:postgresql:greet_db";
-   //private final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
-   private final String USER = "coder";
-   private final String PASS = "pg123";
+//   private final String DB_URL = "jdbc:postgresql:greet_db";
+//   //private final String DB_URL = "jdbc:postgresql://localhost:5432/greet_db";
+//   private final String USER = "coder";
+//   private final String PASS = "pg123";
 
-   Connection conn = null;
+   Connection connection = null;
    Statement stmt = null;
+
+   public PersonService(Connection connection) {
+      this.connection = connection;
+   }
 
   
 //   public void connectDb(String USER, String PASS, String dbUrl) {
@@ -26,65 +30,43 @@ public class PersonService {
 
 
 
-   public Connection getDatabaseConnection(String jdbcDefaultUrl) throws URISyntaxException, SQLException {
-      ProcessBuilder processBuilder = new ProcessBuilder();
-      String database_url = processBuilder.environment().get("DATABASE_URL");
-      System.out.println("\u001B[32m" + database_url + "\u001B[0m");
-      if (database_url != null) {
 
-         URI uri = new URI(database_url);
-         String[] hostParts = uri.getUserInfo().split(":");
-         String username = hostParts[0];
-         String password = hostParts[1];
-         String host = uri.getHost();
-         int port = uri.getPort();
-         String path = uri.getPath();
-         String url = String.format("jdbc:postgresql://%s:%s%s", host, port, path);
 
-         //personService.connectDb(url, username, password);
-         connectToDatabase(url, username, password);
-         return DriverManager.getConnection(url, username, password);
-      }
 
-      return DriverManager.getConnection(jdbcDefaultUrl);
 
-   }
-
-   public void connectToDatabase(String DB_URL, String USER, String PASS) {
-      try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
-         System.out.println("\u001B[32m" + "Connection established Successful! " + "\u001B[0m");
-         System.out.println();
-
-      } catch (SQLException e) {
-         e.printStackTrace();
-      }
-   }
-
-   public void closeConnectionAndStatement(Statement statement, Connection connection) {
-      try {
-         if(statement != null)
-            statement.close();
-         if(connection != null)
-            connection.close();
-
-      } catch (SQLException e) {
-         System.out.println(e.getMessage());
-         e.printStackTrace();
-      }
-   }
+//   public void connectToDatabase(String DB_URL, String USER, String PASS) {
+//      try {
+//         connection = DriverManager.getConnection(DB_URL, USER, PASS);
+//         System.out.println("\u001B[32m" + "Connection established Successful! " + "\u001B[0m");
+//         System.out.println();
+//
+//      } catch (SQLException e) {
+//         e.printStackTrace();
+//      }
+//   }
+//
+//   public void closeConnectionAndStatement(Statement statement, Connection connection) {
+//      try {
+//         if(statement != null)
+//            statement.close();
+//         if(connection != null)
+//            connection.close();
+//
+//      } catch (SQLException e) {
+//         System.out.println(e.getMessage());
+//         e.printStackTrace();
+//      }
+//   }
 
 
 
 
 
    public void add(Person person) {
-      PreparedStatement preparedStatement = null;
       String sql = "INSERT INTO person (name, count) VALUES (?, ?)";
 
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
-         preparedStatement = conn.prepareStatement(sql);
+         PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
          preparedStatement.setString(1, person.getName());
          preparedStatement.setInt(2, 1);
@@ -92,8 +74,6 @@ public class PersonService {
 
       } catch (SQLException e) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
    }
 //   public int getId(Person person) {
@@ -110,9 +90,8 @@ public class PersonService {
       String sql = "SELECT id, name, count FROM person WHERE name=?";
 
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
-         preparedStatement = conn.prepareStatement(sql);
+         preparedStatement = connection.prepareStatement(sql);
          preparedStatement.setString(1, name);
          ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -125,8 +104,6 @@ public class PersonService {
          }
       } catch (SQLException e ) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
 
       return person;
@@ -144,8 +121,7 @@ public class PersonService {
       String sql = "SELECT id, name, count FROM person";
 
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
-         stmt = conn.createStatement();
+         stmt = connection.createStatement();
          ResultSet resultSet = stmt.executeQuery(sql);
 
          while (resultSet.next()) {
@@ -157,8 +133,6 @@ public class PersonService {
          }
       } catch (SQLException e ) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
 
       return personList;
@@ -169,8 +143,7 @@ public class PersonService {
       String sql = "SELECT id, name, count FROM person";
 
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
-         stmt = conn.createStatement();
+         stmt = connection.createStatement();
          ResultSet resultSet = stmt.executeQuery(sql);
 
          while (resultSet.next()) {
@@ -182,8 +155,6 @@ public class PersonService {
          }
       } catch (SQLException e ) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
 
       return namesList;
@@ -202,8 +173,8 @@ public class PersonService {
       String sql = "UPDATE person SET count=? WHERE name=?";
 
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
-         preparedStatement = conn.prepareStatement(sql);
+//         connection = DriverManager.getConnection(DB_URL, USER, PASS);
+         preparedStatement = connection.prepareStatement(sql);
 
          preparedStatement.setInt(1, person.getCount());
          preparedStatement.setString(2, person.getName());
@@ -211,22 +182,18 @@ public class PersonService {
 
       } catch (SQLException e) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
    }
 
    public void clearDb() {
       try {
-         conn = DriverManager.getConnection(DB_URL, USER, PASS);
+ //        connection = DriverManager.getConnection(DB_URL, USER, PASS);
          String selectSql = "DELETE FROM person";
-         stmt = conn.createStatement();
+         stmt = connection.createStatement();
          stmt.execute(selectSql);
 
       } catch (Exception e) {
          e.printStackTrace();
-      } finally {
-         closeConnectionAndStatement(stmt, conn);
       }
    }
 

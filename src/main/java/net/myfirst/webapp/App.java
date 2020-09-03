@@ -28,7 +28,8 @@ public class App {
    private static final String PASS = "pg123";
 
 
-   private static PersonService personService = new PersonService();
+   private static PersonService personService;
+   private static Connection connection1;
 
    static int getHerokuAssignedPort() {
       ProcessBuilder processBuilder = new ProcessBuilder();
@@ -38,24 +39,49 @@ public class App {
       return 4567; //return default port if heroku-port isn't set (i.e. on localhost)
    }
 
+   public static Connection getDatabaseConnection(String jdbcDefaultUrl) throws URISyntaxException, SQLException {
+      ProcessBuilder processBuilder = new ProcessBuilder();
+      String database_url = processBuilder.environment().get("DATABASE_URL");
+      System.out.println("\u001B[32m" + database_url + "\u001B[0m");
+      if (database_url != null) {
+
+         URI uri = new URI(database_url);
+         String[] hostParts = uri.getUserInfo().split(":");
+         String username = hostParts[0];
+         String password = hostParts[1];
+         String host = uri.getHost();
+         int port = uri.getPort();
+         String path = uri.getPath();
+         String url = String.format("jdbc:postgresql://%s:%s%s", host, port, path);
+
+         //personService.connectDb(url, username, password);
+         //connectToDatabase(url, username, password);
+         return DriverManager.getConnection(url, username, password);
+      }
+
+      return DriverManager.getConnection(jdbcDefaultUrl);
+
+   }
+
    public static void main(String[] args) {
-      personService.connectToDatabase(DB_URL, USER, PASS);
-      out.println(personService.usersList());
+//      personService.connectToDatabase(DB_URL, USER, PASS);
+  //    out.println(personService.usersList());
 
       staticFiles.location("/public");
 
       List<String> users = new ArrayList<>();
 
-//      try {
-//         personService.getDatabaseConnection();
-//
-//         //personService.getDatabaseConnection("postgres://quhyzuotwsqqns:59dc741351426ba710278e6719f77149478f49333893a41d6df4889ad1e98d37@ec2-52-87-135-240.compute-1.amazonaws.com:5432/dcekiv6fkhfaq0");
-//      }
-//      catch (SQLException e) {
-//         out.println(e.getMessage());
-//      } catch (URISyntaxException e) {
-//         out.println(e.getMessage());
-//      }
+      try {
+         Connection connection = getDatabaseConnection("jdbc:postgresql://localhost:5432/greet_db?user=thando&password=thando123");
+         personService = new PersonService(connection);
+
+      }
+      catch (SQLException e) {
+         e.printStackTrace();
+      } catch (URISyntaxException e) {
+         out.println(e.getMessage());
+      }
+
 
       port(getHerokuAssignedPort());
 
