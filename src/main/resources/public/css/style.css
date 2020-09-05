@@ -22,3 +22,26 @@
 .show {
 	display: block;
 }
+
+
+@media (max-width:480px) {
+   .greeted {
+        display: flex;
+        position: relative;
+        bottom: 21em;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1em;
+   }
+
+   .mobileRadio {
+      display: flex;
+   }
+   body {
+      background-color: yellow;
+   }
+
+
+}
+
+

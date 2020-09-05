@@ -23,11 +23,6 @@ public class App {
    private static String errorMsg = null;
    private static String showError = "hide";
 
-   private static final String DB_URL = "jdbc:postgresql:greet_db";
-   private static final String USER = "coder";
-   private static final String PASS = "pg123";
-
-
    private static PersonService personService;
    private static Connection connection1;
 
@@ -54,8 +49,6 @@ public class App {
          String path = uri.getPath();
          String url = String.format("jdbc:postgresql://%s:%s%s", host, port, path);
 
-         //personService.connectDb(url, username, password);
-         //connectToDatabase(url, username, password);
          return DriverManager.getConnection(url, username, password);
       }
 
@@ -64,26 +57,21 @@ public class App {
    }
 
    public static void main(String[] args) {
-//      personService.connectToDatabase(DB_URL, USER, PASS);
-  //    out.println(personService.usersList());
 
       staticFiles.location("/public");
-
       List<String> users = new ArrayList<>();
+
+      port(getHerokuAssignedPort());
 
       try {
          Connection connection = getDatabaseConnection("jdbc:postgresql://localhost:5432/greet_db?user=thando&password=thando123");
          personService = new PersonService(connection);
-
       }
       catch (SQLException e) {
          e.printStackTrace();
       } catch (URISyntaxException e) {
-         out.println(e.getMessage());
+         e.printStackTrace();
       }
-
-
-      port(getHerokuAssignedPort());
 
       get("/", (req, res) -> {
          res.redirect("/hello");
@@ -113,55 +101,64 @@ public class App {
          return new ModelAndView(map, "greeted.handlebars");
       }, new HandlebarsTemplateEngine());
 
-         post("/hello", (req, res) -> {
-            Map<String, Object> map = new HashMap<>();
-            String language = req.queryParams("language");
-            String name = req.queryParams("name");
-            name = name.substring(0, 1).toUpperCase() + name.substring(1);
+      post("/hello", (req, res) -> {
+         Map<String, Object> map = new HashMap<>();
+         String language = req.queryParams("language");
+         String name = req.queryParams("name");
+         name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
-            Person person = null;
-            String greeting = null;
+         Person person = null;
+         String greeting = null;
 
-            try {
-               greeting = App.greeting(language, name);
-               List<String> names = personService.getUserNames();
+         try {
+            greeting = App.greeting(language, name);
+            List<String> names = personService.getUserNames();
 
-               out.println("NAME: " + name);
-
-               if (!names.contains(name)) {
-                  out.println("Does NOT exists");
-                  personService.add(user);
-               } else {
-                  out.println("Already exists");
-                  person = personService.getByName(name);
-                  personService.updateCount(person);
-               }
-               showError = "hide";
-
-            } catch (InputRequiredException e) {
-               errorMsg = e.getMessage();
-               showError = "show";
+            if (!names.contains(name)) {
+               personService.add(user);
+            } else {
+               person = personService.getByName(name);
+               personService.updateCount(person);
             }
+            showError = "hide";
 
-            List<Person> usersList = personService.usersList();
+         } catch (InputRequiredException e) {
+            errorMsg = e.getMessage();
+            showError = "show";
+         }
 
-            map.put("greeting", greeting);
-            map.put("usersList", usersList);
-            map.put("greetedCounter", usersList.size());
-            map.put("errorMsg", errorMsg);
-            map.put("showError", showError);
+         List<Person> usersList = personService.usersList();
 
-            return new ModelAndView(map, "hello.handlebars");
+         map.put("greeting", greeting);
+         map.put("usersList", usersList);
+         map.put("greetedCounter", usersList.size());
+         map.put("errorMsg", errorMsg);
+         map.put("showError", showError);
 
-         }, new HandlebarsTemplateEngine());
+         return new ModelAndView(map, "hello.handlebars");
 
-         get("/reset", (req, res) -> {
-            personService.clearDb();
-            res.redirect("/hello");
-            return null;
-         });
+      }, new HandlebarsTemplateEngine());
 
+      get("/reset", (req, res) -> {
+         personService.clearDb();
+         res.redirect("/hello");
+         return null;
+      });
 
+      get("/delete/:name", (req, res) -> {
+         personService.delete(req.params("name"));
+         out.println("User has been removed...");
+         res.redirect("/hello");
+         return null;
+      });
+
+      post("/update/:name", (req, res) -> {
+         Person person = personService.getByName(req.params("name"));
+         personService.updateName( person, req.queryParams("theName") );
+         out.println("User has been updated...");
+         res.redirect("/hello");
+         return null;
+      });
    }
 
 
