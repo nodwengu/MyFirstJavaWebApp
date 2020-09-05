@@ -38,6 +38,10 @@
       display: flex;
    }
 
+   .jumbotron {
+       margin-bottom: 0em;
+   }
+
 }
 
 
