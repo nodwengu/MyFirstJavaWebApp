@@ -38,7 +38,7 @@
    }
 
    .jumbotron {
-       margin-bottom: 0em;
+       margin-bottom: 0em !important;
    }
 
 }
