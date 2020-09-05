@@ -26,12 +26,11 @@
 
 @media (max-width:480px) {
    .greeted {
-        display: flex;
-        position: relative;
-        bottom: 18em;
-        align-items: center;
-        justify-content: center;
-        margin-top: 1em;
+          display: flex;
+          position: absolute;
+          align-items: center;
+          justify-content: center;
+          margin-top: -3em;
    }
 
    .mobileRadio {
