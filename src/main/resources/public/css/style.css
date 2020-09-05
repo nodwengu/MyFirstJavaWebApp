@@ -25,12 +25,25 @@
 
 
 @media (max-width:480px) {
+   .listItem {
+      display: flex !important;
+      margin: 7px 0 0 0;
+   }
+
+   .listBtn {
+   	flex: 1 1 0;
+   }
+
    .greeted {
-          display: flex;
-          position: absolute;
-          align-items: center;
-          justify-content: center;
-          margin-top: -3em;
+       position: absolute;
+       align-items: center;
+       justify-content: center;
+       margin-top: -3em;
+       flex: 1 1 0;
+   }
+
+   .greetedName {
+       flex: 1 1 0;
    }
 
    .mobileRadio {
