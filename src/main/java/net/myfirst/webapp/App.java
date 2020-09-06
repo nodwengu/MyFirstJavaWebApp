@@ -3,7 +3,6 @@ package net.myfirst.webapp;
 import net.myfirst.webapp.exceptions.InputRequiredException;
 import spark.ModelAndView;
 import spark.template.handlebars.HandlebarsTemplateEngine;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
@@ -19,12 +18,9 @@ import static spark.Spark.*;
 import static java.lang.System.out;
 
 public class App {
-   private static Person user = null;
    private static String errorMsg = null;
    private static String showError = "hide";
-
    private static PersonService personService;
-   private static Connection connection1;
 
    static int getHerokuAssignedPort() {
       ProcessBuilder processBuilder = new ProcessBuilder();
@@ -37,9 +33,8 @@ public class App {
    public static Connection getDatabaseConnection(String jdbcDefaultUrl) throws URISyntaxException, SQLException {
       ProcessBuilder processBuilder = new ProcessBuilder();
       String database_url = processBuilder.environment().get("DATABASE_URL");
-      System.out.println("\u001B[32m" + database_url + "\u001B[0m");
-      if (database_url != null) {
 
+      if (database_url != null) {
          URI uri = new URI(database_url);
          String[] hostParts = uri.getUserInfo().split(":");
          String username = hostParts[0];
@@ -53,21 +48,18 @@ public class App {
       }
 
       return DriverManager.getConnection(jdbcDefaultUrl);
-
    }
 
    public static void main(String[] args) {
-
       staticFiles.location("/public");
       List<String> users = new ArrayList<>();
-
       port(getHerokuAssignedPort());
 
       try {
          Connection connection = getDatabaseConnection("jdbc:postgresql://localhost:5432/greet_db?user=thando&password=thando123");
          personService = new PersonService(connection);
-      }
-      catch (SQLException e) {
+
+      }  catch (SQLException e) {
          e.printStackTrace();
       } catch (URISyntaxException e) {
          e.printStackTrace();
@@ -79,10 +71,10 @@ public class App {
       });
 
       get("/hello", (req, res) -> {
+         Map<String, Object> map = new HashMap<>();
          List<Person> usersList = new ArrayList<>();
          usersList = personService.usersList();
 
-         Map<String, Object> map = new HashMap<>();
          map.put("usersList", usersList);
          map.put("greetedCounter", usersList.size());
 
@@ -90,12 +82,11 @@ public class App {
       }, new HandlebarsTemplateEngine());
 
       get("/greeted/:name", (req, res) -> {
-         Person user = null;
          Map<String, Object> map = new HashMap<>();
-         map.put("name", req.params("name"));
-         user = personService.getByName(req.params("name"));
-
+         Person user = personService.getByName(req.params("name"));
          int count = user.getCount();
+
+         map.put("name", req.params("name"));
          map.put("count", count);
 
          return new ModelAndView(map, "greeted.handlebars");
@@ -103,26 +94,32 @@ public class App {
 
       post("/hello", (req, res) -> {
          Map<String, Object> map = new HashMap<>();
-         String language = req.queryParams("language");
-         String name = req.queryParams("name");
-         name = name.substring(0, 1).toUpperCase() + name.substring(1);
-
-         Person person = null;
          String greeting = null;
 
          try {
-            greeting = App.greeting(language, name);
-            List<String> names = personService.getUserNames();
+            String name = req.queryParams("name");
+            String language = req.queryParams("language");
 
-            if (!names.contains(name)) {
-               personService.add(user);
+            if (language == null || name.isEmpty()) {
+               throw new InputRequiredException("Name and Language are required");
             } else {
-               person = personService.getByName(name);
-               personService.updateCount(person);
-            }
-            showError = "hide";
+               name = name.substring(0, 1).toUpperCase() + name.substring(1);
+               greeting = App.greeting(language, name);
+               List<String> names = personService.getUserNames();
+               Person user = new Person();
+               user.setName(name);
+               user.setCount(1);
 
+               if (!names.contains(name)) {
+                  personService.add(user);
+               } else {
+                  Person person = personService.getByName(name);
+                  personService.updateCount(person);
+               }
+               showError = "hide";
+            }
          } catch (InputRequiredException e) {
+            out.println("\u001B[32m" + e.getMessage() + "\u001B[0m");
             errorMsg = e.getMessage();
             showError = "show";
          }
@@ -162,35 +159,25 @@ public class App {
    }
 
 
-   
-   static String greeting(String language, String name) throws InputRequiredException{
+   static String greeting(String language, String name){
       String greeting = null;
+      String newName = name.toLowerCase();
+      newName = name.substring(0, 1).toUpperCase() + name.substring(1);
 
-      if ( language == null || name.isEmpty() ) {
-         throw new InputRequiredException("Name and Language are required");
-
-      } else {
-         String newName = name.toLowerCase();
-         newName = name.substring(0, 1).toUpperCase() + name.substring(1);
-
-         user = new Person();
-         user.setName(newName);
-         user.setCount(1);
-
-         switch (language) {
-            case "English":
-               greeting = "Hello, " + newName;
-               break;
-            case "Xhosa":
-               greeting = "Mholo, " + newName;
-               break;
-            case "Zulu":
-               greeting = "Sawubona, " + newName;
-               break;
-            default:
-               greeting = "Select Radio button";
-         }
+      switch (language) {
+         case "English":
+            greeting = "Hello, " + newName;
+            break;
+         case "Xhosa":
+            greeting = "Mholo, " + newName;
+            break;
+         case "Zulu":
+            greeting = "Sawubona, " + newName;
+            break;
+         default:
+            greeting = "Select Radio button";
       }
+
       return greeting;
    }
 }

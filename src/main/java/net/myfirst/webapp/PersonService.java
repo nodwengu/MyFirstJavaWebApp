@@ -21,7 +21,6 @@ public class PersonService {
          preparedStatement.setString(1, person.getName());
          preparedStatement.setInt(2, 1);
          preparedStatement.execute();
-
       } catch (SQLException e) {
          e.printStackTrace();
       }
@@ -38,7 +37,6 @@ public class PersonService {
 
          while (resultSet.next()) {
             person = new Person();
-
             person.setName(resultSet.getString("name"));
             person.setCount(resultSet.getInt("count"));
             person.setId(resultSet.getInt("id"));
@@ -103,7 +101,6 @@ public class PersonService {
          preparedStatement.setInt(1, person.getCount());
          preparedStatement.setString(2, person.getName());
          preparedStatement.execute();
-
       } catch (SQLException e) {
          e.printStackTrace();
       }
@@ -117,7 +114,6 @@ public class PersonService {
          preparedStatement.setString(1, newName);
          preparedStatement.setString(2, person.getName());
          preparedStatement.execute();
-
       } catch (SQLException e) {
          e.printStackTrace();
       }
@@ -140,7 +136,6 @@ public class PersonService {
          String selectSql = "DELETE FROM person";
          stmt = connection.createStatement();
          stmt.execute(selectSql);
-
       } catch (Exception e) {
          e.printStackTrace();
       }
